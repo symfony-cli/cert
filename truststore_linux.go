@@ -30,6 +30,8 @@ func init() {
 		CertutilInstallHelp = "yum install nss-tools"
 	case binaryExists("zypper"):
 		CertutilInstallHelp = "zypper install mozilla-nss-tools"
+	case binaryExists("emerge"):
+		CertutilInstallHelp = "echo 'dev-libs/nss utils' >> /etc/portage/package.use/nss && emerge -av dev-libs/nss"
 	}
 }
 

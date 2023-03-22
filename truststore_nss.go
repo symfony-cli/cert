@@ -21,6 +21,7 @@ var firefoxPaths = []string{
 	"/usr/bin/firefox",
 	"/usr/bin/firefox-nightly",
 	"/usr/bin/firefox-developer-edition",
+	"/snap/firefox",
 	"/Applications/Firefox.app",
 	"/Applications/FirefoxDeveloperEdition.app",
 	"/Applications/Firefox Developer Edition.app",
@@ -118,8 +119,12 @@ func (ca *CA) uninstallNSS() {
 
 func (ca *CA) forEachNSSProfile(f func(profile string) error) (int, error) {
 	found := 0
-	profiles, _ := filepath.Glob(FirefoxProfile)
+	var profiles []string
 	profiles = append(profiles, nssDBs...)
+	for _, ff := range FirefoxProfiles {
+		pp, _ := filepath.Glob(ff)
+		profiles = append(profiles, pp...)
+	}
 	for _, profile := range profiles {
 		if stat, err := os.Stat(profile); err != nil || !stat.IsDir() {
 			continue

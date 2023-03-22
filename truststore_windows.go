@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	FirefoxProfile      = os.Getenv("USERPROFILE") + "\\AppData\\Roaming\\Mozilla\\Firefox\\Profiles"
+	FirefoxProfiles     = []string{os.Getenv("USERPROFILE") + "\\AppData\\Roaming\\Mozilla\\Firefox\\Profiles"}
 	CertutilInstallHelp = "" // certutil unsupported on Windows
 	NSSBrowsers         = "Firefox"
 )

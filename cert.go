@@ -189,7 +189,7 @@ func Cert(filename string) (tls.Certificate, error) {
 	if err != nil {
 		return tls.Certificate{}, errors.WithStack(err)
 	}
-	blocks, err := pkcs12.ToPEM(p12, "")
+	priv, domainCert, caCerts, err := pkcs12.DecodeChain(p12, "")
 	if err == pkcs12.ErrIncorrectPassword {
 		priv, domainCert, caCerts, err := pkcs12.DecodeChain(p12, "symfony")
 		if err != nil {
@@ -200,7 +200,7 @@ func Cert(filename string) (tls.Certificate, error) {
 
 		// In case the previous certificate has a passphrase, we re-encode it
 		// on the fly without passphrase
-		pfxData, err := pkcs12.Encode(rand.Reader, priv, domainCert, caCerts, "")
+		pfxData, err := pkcs12.Modern.Encode(priv, domainCert, caCerts, "")
 		if err != nil {
 			return tls.Certificate{}, errors.WithStack(err)
 		}
@@ -219,15 +219,15 @@ func Cert(filename string) (tls.Certificate, error) {
 	if err != nil {
 		return tls.Certificate{}, errors.WithStack(err)
 	}
-	var pemData []byte
-	for _, b := range blocks {
-		pemData = append(pemData, pem.EncodeToMemory(b)...)
+	certs := [][]byte{domainCert.Raw}
+	for _, c := range caCerts {
+		certs = append(certs, c.Raw)
 	}
-	cert, err := tls.X509KeyPair(pemData, pemData)
-	if err != nil {
-		return tls.Certificate{}, errors.WithStack(err)
-	}
-	return cert, nil
+
+	return tls.Certificate{
+		Certificate: certs,
+		PrivateKey:  priv,
+	}, nil
 }
 
 func (ca *CA) CreateCert(hosts []string) (tls.Certificate, error) {
@@ -326,7 +326,7 @@ func (ca *CA) MakeCert(filename string, hosts []string) error {
 	priv := c.PrivateKey
 
 	domainCert, _ := x509.ParseCertificate(cert)
-	pfxData, err := pkcs12.Encode(rand.Reader, priv, domainCert, []*x509.Certificate{ca.cert}, "")
+	pfxData, err := pkcs12.Modern.Encode(priv, domainCert, []*x509.Certificate{ca.cert}, "")
 	if err != nil {
 		return errors.Wrap(err, "failed to generate PKCS#12")
 	}

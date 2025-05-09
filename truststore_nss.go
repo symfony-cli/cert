@@ -102,9 +102,9 @@ func (ca *CA) installNSS() error {
 	return nil
 }
 
-func (ca *CA) uninstallNSS() {
+func (ca *CA) uninstallNSS() error {
 	certutilPath := certutilPath()
-	ca.forEachNSSProfile(func(profile string) error {
+	_, err := ca.forEachNSSProfile(func(profile string) error {
 		err := exec.Command(certutilPath, "-V", "-d", profile, "-u", "L", "-n", ca.caUniqueName()).Run()
 		if err != nil {
 			return nil
@@ -115,6 +115,8 @@ func (ca *CA) uninstallNSS() {
 		}
 		return nil
 	})
+
+	return err
 }
 
 func (ca *CA) forEachNSSProfile(f func(profile string) error) (int, error) {
@@ -156,5 +158,5 @@ func execCertutil(cmd *exec.Cmd) ([]byte, error) {
 		cmd.Args = append(cmd.Args, origArgs...)
 		out, err = cmd.CombinedOutput()
 	}
-	return out, err
+	return out, errors.WithStack(err)
 }

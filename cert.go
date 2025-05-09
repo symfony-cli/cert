@@ -144,7 +144,7 @@ func (ca *CA) Install(force bool) error {
 			return err
 		}
 		f, _ := os.OpenFile(ca.trustedpath, os.O_RDONLY|os.O_CREATE, 0644)
-		f.Close()
+		_ = f.Close()
 		terminal.Println("The local CA is now installed in the system trust store!")
 	}
 	if hasNSS() && (force || !ca.checkNSS()) {
@@ -168,7 +168,9 @@ func (ca *CA) Uninstall() error {
 	hasCertutil := certutilPath() != ""
 	if hasNSS() {
 		if hasCertutil {
-			ca.uninstallNSS()
+			if err := ca.uninstallNSS(); err != nil {
+				terminal.Printf("<warning>WARNING</> an error happened during CA uninstallation from %s: %s!\n", NSSBrowsers, err)
+			}
 		} else if CertutilInstallHelp != "" {
 			terminal.Printf("<warning>WARNING</> \"certutil\" is not available, so the CA can't be automatically uninstalled from %s (if it was ever installed)!\n", NSSBrowsers)
 			terminal.Printf("You can install \"certutil\" with \"%s\" and re-run the command\n", CertutilInstallHelp)
@@ -204,7 +206,9 @@ func Cert(filename string) (tls.Certificate, error) {
 		if err != nil {
 			return tls.Certificate{}, errors.WithStack(err)
 		}
-		defer ioutil.WriteFile(filename, pfxData, 0644)
+		if err := errors.WithStack(ioutil.WriteFile(filename, pfxData, 0644)); err != nil {
+			return tls.Certificate{}, err
+		}
 
 		certs := [][]byte{domainCert.Raw}
 		for _, c := range caCerts {

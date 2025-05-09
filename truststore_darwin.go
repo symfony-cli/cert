@@ -62,7 +62,10 @@ func (ca *CA) installPlatform() error {
 		return errors.Wrap(err, "failed to create temp file")
 	}
 
-	defer os.Remove(plistFile.Name())
+	defer func(name string) {
+		// a failure during removal of this file is not important
+		_ = os.Remove(name)
+	}(plistFile.Name())
 
 	cmd = commandWithSudo("security", "trust-settings-export", "-d", plistFile.Name())
 	if out, err := cmd.CombinedOutput(); err != nil {

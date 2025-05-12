@@ -5,6 +5,14 @@ on:
     push:
 
 jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v8
+
   test:
     runs-on: ubuntu-latest
     strategy:
@@ -20,7 +28,7 @@ jobs:
         - '1.24'
     name: Go ${{ matrix.go }} test
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - name: Setup go

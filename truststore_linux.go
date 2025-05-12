@@ -57,7 +57,7 @@ func getSystemTrust() (string, []string) {
 }
 
 func (ca *CA) systemTrustFilename(systemTrustFilenamePattern string) string {
-	return fmt.Sprintf(systemTrustFilenamePattern, strings.Replace(ca.caUniqueName(), " ", "_", -1))
+	return fmt.Sprintf(systemTrustFilenamePattern, strings.ReplaceAll(ca.caUniqueName(), " ", "_"))
 }
 
 func (ca *CA) installPlatform() error {
